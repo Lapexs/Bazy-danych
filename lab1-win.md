@@ -102,7 +102,7 @@ Jaka jest są podobieństwa, jakie różnice pomiędzy grupowaniem danych a dzia
 ```sql
 Podobieństwa: Zarówno klauzula GROUP BY, jak i funkcje okna (OVER) pozwalają na wykonywanie funkcji agregujących, takich jak AVG(), na określonym zbiorze danych.
 
-Różnice: * Tradycyjne grupowanie (GROUP BY categoryid) "zwija" (agreguje) wiersze, zwracając tylko jeden wiersz dla każdej unikalnej kategorii. Utracisz dostęp do detali pojedynczych produktów w tym samym zapytaniu.
+Różnice: Tradycyjne grupowanie (GROUP BY categoryid) agreguje wiersze, zwracając tylko jeden wiersz dla każdej unikalnej kategorii. Utracisz dostęp do detali pojedynczych produktów w tym samym zapytaniu.
 
 Funkcja okna z OVER (PARTITION BY categoryid) oblicza średnią dla każdej kategorii, ale nie redukuje liczby wierszy w wyniku. Wynik agregacji jest dołączany jako nowa kolumna do każdego oryginalnego wiersza w tabeli products. Zapytanie z samym OVER() oblicza średnią dla całej tabeli i dołącza ją do każdego wiersza.
 ```
@@ -138,7 +138,23 @@ Jaka jest różnica? Czego dotyczy warunek w każdym z przypadków? Napisz polec
 > Wyniki:
 
 ```sql
---  ...
+W zapytaniu z funkcją okna funkcja agregująca avg(unitprice) over () jest obliczana po przefiltrowaniu danych przez klauzulę WHERE. Zatem oblicza ona średnią cenę tylko dla produktów, które spełniają warunek productid < 10.
+
+W zapytaniu z podzapytaniem warunek WHERE productid < 10 filtruje tylko zewnętrzny wynik. Podzapytanie (select avg(unitprice) from products) oblicza średnią ze wszystkich produktów w bazie, niezależnie od warunku w głównym zapytaniu.
+
+1)
+WITH CTE AS (
+    SELECT p.productid, p.ProductName, p.unitprice,
+           avg(unitprice) over () as avgprice
+    FROM products p
+)
+SELECT * FROM CTE WHERE productid < 10;
+
+2) 
+SELECT p.productid, p.ProductName, p.unitprice,
+       (SELECT avg(unitprice) FROM products WHERE productid < 10) as avgprice
+FROM products p
+WHERE productid < 10;
 ```
 
 ---
