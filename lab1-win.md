@@ -2,7 +2,7 @@
 
 ---
 
-**Imiona i nazwiska:**
+**Imiona i nazwiska: Jan Małek** 
 
 ---
 
@@ -100,7 +100,11 @@ Jaka jest są podobieństwa, jakie różnice pomiędzy grupowaniem danych a dzia
 > Wyniki:
 
 ```sql
---  ...
+Podobieństwa: Zarówno klauzula GROUP BY, jak i funkcje okna (OVER) pozwalają na wykonywanie funkcji agregujących, takich jak AVG(), na określonym zbiorze danych.
+
+Różnice: * Tradycyjne grupowanie (GROUP BY categoryid) "zwija" (agreguje) wiersze, zwracając tylko jeden wiersz dla każdej unikalnej kategorii. Utracisz dostęp do detali pojedynczych produktów w tym samym zapytaniu.
+
+Funkcja okna z OVER (PARTITION BY categoryid) oblicza średnią dla każdej kategorii, ale nie redukuje liczby wierszy w wyniku. Wynik agregacji jest dołączany jako nowa kolumna do każdego oryginalnego wiersza w tabeli products. Zapytanie z samym OVER() oblicza średnią dla całej tabeli i dołącza ją do każdego wiersza.
 ```
 
 ---
