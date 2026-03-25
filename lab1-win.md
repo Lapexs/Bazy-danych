@@ -185,9 +185,11 @@ W DataGrip użyj opcji Explain Plan/Explain Analyze
 
 ```sql
 
-1. <img width="1281" height="338" alt="Screenshot 2026-03-24 at 19 12 07" src="https://github.com/user-attachments/assets/ef1ffa57-983f-495d-9147-af597333439c" />
+1. ![Wynik zapytania 1](img/Zad 3.1.png)
 
-2. 
+2. ![Wynik zapytania 2](img/Zad 3.2.png)
+
+3. ![Wynik zapytania 3](img/Zad 3.3.png)
 
 ```
 
