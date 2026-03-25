@@ -237,7 +237,14 @@ Plan:
 3. 77 rows retrieved starting from 1 in 358 ms (execution: 5 ms, fetching: 353 ms)
 ```
 3. ![Wynik zapytania 3](Zad_3.3_SQLite.png)
+   
+```sql
+Analizując wyniki zapytań z Zadania 3 , można zauważyć interesujące różnice w sposobie optymalizacji kodu przez poszczególne systemy zarządzania bazami danych. Pod względem składni, polecenie wykorzystujące funkcję okna z klauzulą OVER jest zdecydowanie najkrótsze i najbardziej czytelne w porównaniu do konstrukcji z podzapytaniem czy złączeniem (JOIN). Porównując czasy oraz plany wykonania zapytań, optymalizator w MS SQL Server poradził sobie równie dobrze z każdym z trzech wariantów – wszystkie wygenerowały identyczny koszt całkowity (0.0041) oraz bardzo zbliżony czas samej egzekucji na poziomie 12-13 ms. Oznacza to, że silnik MS SQL skutecznie zoptymalizował podzapytanie, najprawdopodobniej wykonując agregację tylko raz. Sytuacja wygląda inaczej w przypadku PostgreSQL i SQLite, gdzie wyraźnie zarysowały się różnice wydajnościowe. W tych silnikach zapytanie oparte na podzapytaniu w klauzuli SELECT okazało się najwolniejsze (odpowiednio 16 ms i 17 ms czasu egzekucji), natomiast zastosowanie JOIN-a lub funkcji okna drastycznie poprawiło wynik, skracając czas wykonania do zaledwie 5-6 ms. Podsumowując, chociaż bardzo zaawansowane silniki potrafią zniwelować różnice wydajnościowe wynikające ze sposobu zapisu, stosowanie funkcji okna pozostaje najlepszą i najbezpieczniejszą praktyką, która gwarantuje optymalny czas wykonania niezależnie od używanego środowiska.
+```
+
 ---
+
+
 
 # Zadanie 4
 
@@ -254,7 +261,44 @@ Przetestuj działanie w różnych SZBD (MS SQL Server, PostgreSql, SQLite)
 > Wyniki:
 
 ```sql
---  ...
+SQL
+1. 27 rows retrieved starting from 1 in 368 ms (execution: 27 ms, fetching: 341 ms)
+Plan:
+```
+
+```sql
+2. 27 rows retrieved starting from 1 in 349 ms (execution: 15 ms, fetching: 334 ms)
+Plan:
+```
+
+```sql
+3. 27 rows retrieved starting from 1 in 350 ms (execution: 17 ms, fetching: 333 ms)
+Plan:
+```
+```sql
+Postgres
+1. 27 rows retrieved starting from 1 in 343 ms (execution: 7 ms, fetching: 336 ms)
+Plan:
+```
+```sql
+2. 27 rows retrieved starting from 1 in 338 ms (execution: 6 ms, fetching: 332 ms)
+Plan:
+```
+```sql
+3. 27 rows retrieved starting from 1 in 340 ms (execution: 7 ms, fetching: 333 ms)
+Plan:
+```
+
+```sql
+SQLite
+1. 27 rows retrieved starting from 1 in 360 ms (execution: 5 ms, fetching: 355 ms)
+Plan:
+```
+```sql
+2. 27 rows retrieved starting from 1 in 356 ms (execution: 4 ms, fetching: 352 ms)
+```
+```sql
+3. 27 rows retrieved starting from 1 in 323 ms (execution: 4 ms, fetching: 319 ms)
 ```
 
 ---
