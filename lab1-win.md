@@ -327,107 +327,12 @@ Baza Northwind3 zawiera dodatkową tabelę product_history
 
 Bazę Northwind3 można pobrać z moodle (zakładka - Backupy baz danych)
 
-Można też wygenerować tabelę product_history przy pomocy skryptu
-
-Skrypt dla SQL Srerver
-
-Stwórz tabelę o następującej strukturze:
-
-```sql
-create table product_history(
-   id int identity(1,1) not null,
-   productid int,
-   productname varchar(40) not null,
-   supplierid int null,
-   categoryid int null,
-   quantityperunit varchar(20) null,
-   unitprice decimal(10,2) null,
-   quantity int,
-   value decimal(10,2),
-   date date,
- constraint pk_product_history primary key clustered
-    (id asc )
-)
-```
-
-Wygeneruj przykładowe dane:
-
-Dla 30000 iteracji, tabela będzie zawierała nieco ponad 2mln wierszy (dostostu ograniczenie do możliwości swojego komputera)
-
-Skrypt dla SQL Srerver
-
-```sql
-declare @i int
-set @i = 1
-while @i <= 30000
-begin
-    insert product_history
-    select productid, ProductName, SupplierID, CategoryID,
-         QuantityPerUnit,round(RAND()*unitprice + 10,2),
-         cast(RAND() * productid + 10 as int), 0,
-         dateadd(day, @i, '1940-01-01')
-    from products
-    set @i = @i + 1;
-end;
-
-update product_history
-set value = unitprice * quantity
-where 1=1;
-```
-
-Skrypt dla Postgresql
-
-```sql
-create table product_history(
-   id int generated always as identity not null
-       constraint pkproduct_history
-            primary key,
-   productid int,
-   productname varchar(40) not null,
-   supplierid int null,
-   categoryid int null,
-   quantityperunit varchar(20) null,
-   unitprice decimal(10,2) null,
-   quantity int,
-   value decimal(10,2),
-   date date
-);
-```
-
-Wygeneruj przykładowe dane:
-
-Skrypt dla Postgresql
-
-```sql
-do $$
-begin
-  for cnt in 1..30000 loop
-    insert into product_history(productid, productname, supplierid,
-           categoryid, quantityperunit,
-           unitprice, quantity, value, date)
-    select productid, productname, supplierid, categoryid,
-           quantityperunit,
-           round((random()*unitprice + 10)::numeric,2),
-           cast(random() * productid + 10 as int), 0,
-           cast('1940-01-01' as date) + cnt
-    from products;
-  end loop;
-end; $$;
-
-update product_history
-set value = unitprice * quantity
-where 1=1;
-```
-
 Wykonaj polecenia: `select count(*) from product_history`, potwierdzające wykonanie zadania
 
 ---
 
 > Wyniki:
-
-```sql
---  ...
-```
+![Wynik zapytania](Zad5.png)
 
 # Zadanie 6
 
@@ -455,48 +360,112 @@ Przetestuj działanie w różnych SZBD (MS SQL Server, PostgreSql, SQLite)
 ---
 
 > Wyniki:
+```sql
+1)
+WITH t AS (
+    SELECT
+        id,
+        productid,
+        productname,
+        categoryid,
+        unitprice,
+        (SELECT AVG(unitprice) FROM product_history p2 WHERE p1.categoryid = p2.categoryid) AS avgprice
+    FROM product_history p1
+)
+SELECT * FROM t
+WHERE id BETWEEN 1 AND 10000
+  AND unitprice > avgprice;
+
+2)
+WITH t AS (
+    SELECT
+        p.id,
+        p.productid,
+        p.productname,
+        p.categoryid,
+        p.unitprice,
+        a.avgprice
+    FROM product_history p
+    JOIN (
+        SELECT categoryid, AVG(unitprice) AS avgprice
+        FROM product_history
+        GROUP BY categoryid
+    ) a ON p.categoryid = a.categoryid
+)
+SELECT * FROM t
+WHERE id BETWEEN 1 AND 10000
+  AND unitprice > avgprice;
+
+3)
+WITH t AS (
+    SELECT
+        id,
+        productid,
+        productname,
+        categoryid,
+        unitprice,
+        AVG(unitprice) OVER(PARTITION BY categoryid) AS avgprice
+    FROM product_history
+)
+SELECT * FROM t
+WHERE id BETWEEN 1 AND 10000
+  AND unitprice > avgprice;
+```
 
 ```sql
 SQL
 1. 500 rows retrieved starting from 1 in 394 ms (execution: 56 ms, fetching: 338 ms)
 Plan:
 ```
+![Wynik zapytania](Zad6.1_SQL.png)
+
 ```sql
 2. 500 rows retrieved starting from 1 in 431 ms (execution: 86 ms, fetching: 345 ms)
 Plan:
 ```
+![Wynik zapytania](Zad6.2_SQL.png)
 ```sql
 3. 500 rows retrieved starting from 1 in 606 ms (execution: 268 ms, fetching: 338 ms)
 Plan:
 ```
-
+![Wynik zapytania](Zad6.3_SQL.png)
 ```sql
 Postgres
 1. 500 rows retrieved starting from 1 in 2 m 35 s 214 ms (execution: 2 m 34 s 847 ms, fetching: 367 ms)
 Plan:
 ```
+![Wynik zapytania](Zad6.1_Postgres.png)
 ```sql
 2. 500 rows retrieved starting from 1 in 615 ms (execution: 272 ms, fetching: 343 ms)
 Plan:
 ```
+![Wynik zapytania](Zad6.2_Postgres.png)
 ```sql
 3. 500 rows retrieved starting from 1 in 1 s 165 ms (execution: 820 ms, fetching: 345 ms)
 Plan:
 ```
-
+![Wynik zapytania](Zad6.3_Postgres.png)
 ```sql
 SQLite
 1. 500 rows retrieved starting from 1 in 2 m 18 s 367 ms (execution: 996 ms, fetching: 2 m 17 s 371 ms)
 Plan:
 ```
+![Wynik zapytania](Zad6.1_SQLite.png)
 ```sql
 2. 500 rows retrieved starting from 1 in 441 ms (execution: 102 ms, fetching: 339 ms)
 Plan:
 ```
+![Wynik zapytania](Zad6.2_SQLite.png)
 ```sql
 3. 500 rows retrieved starting from 1 in 569 ms (execution: 234 ms, fetching: 335 ms)
 Plan:
 ```
+![Wynik zapytania](Zad6.3_SQLite.png)
+
+```sql
+Analiza wyników na ponad dwumilionowym zbiorze danych obnaża ogromne różnice w optymalizacji silników. Zastosowanie skorelowanego podzapytania doprowadziło do całkowitego załamania wydajności w PostgreSQL i SQLite (czasy egzekucji powyżej 2 minut), podczas gdy zaawansowany optymalizator MS SQL Server poradził sobie z nim w zaledwie 56 ms. Najbardziej stabilnym rozwiązaniem na wszystkich platformach okazało się złączenie (JOIN), osiągając bardzo dobre i wyrównane czasy rzędu kilkuset milisekund. Funkcja okna wypadła w tym specyficznym przypadku nieco gorzej od JOIN-a (czasy od 234 ms do 820 ms), ponieważ wymusiła na silnikach wykonanie kosztownego partycjonowania całego, dwumilionowego zbioru przed ostatecznym odfiltrowaniem wyników na zewnątrz (WHERE id BETWEEN). Podsumowując: przy dużych wolumenach danych należy bezwzględnie unikać skorelowanych podzapytań na rzecz złączeń (JOIN), które gwarantują wysoką i przewidywalną wydajność niezależnie od używanego systemu bazodanowego.
+```
+
 ---
 
 |         |     |
