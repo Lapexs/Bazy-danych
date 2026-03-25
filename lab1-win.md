@@ -309,7 +309,13 @@ Plan:
 3. 27 rows retrieved starting from 1 in 323 ms (execution: 4 ms, fetching: 319 ms)
 ```
 3. ![Wynik zapytania 3](Zad4.3_SQLite.png)
+
+```sql
+
+Analizując wyniki zapytań z Zadania 4, w którym konieczne było obliczenie średniej ceny produktów w danej kategorii i odfiltrowanie tych droższych niż średnia, można zauważyć wyraźniejsze różnice w wydajności w zależności od wybranej metody, co jest szczególnie widoczne w środowisku MS SQL Server. W tym silniku użycie skorelowanego podzapytania okazało się najmniej optymalne, generując czas egzekucji na poziomie 27 ms, co wynika z faktu, że baza musi przeliczać warunki wielokrotnie dla każdego wiersza. Zastosowanie złączenia (JOIN) oraz funkcji okna z partycjonowaniem znacząco poprawiło ten wynik, redukując czas wykonania do odpowiednio 15 ms i 17 ms. Z kolei systemy PostgreSQL oraz SQLite wykazały się bardzo agresywną optymalizacją, obsługując wszystkie trzy warianty zapytań w niemal identycznym, niezwykle krótkim czasie (od 4 do 7 ms), co sugeruje, że ich optymalizatory pod spodem przekształciły skorelowane podzapytanie do postaci wydajniejszego złączenia. Podsumowując, chociaż nowoczesne i lekkie silniki potrafią sprawnie zoptymalizować każdy kod, korzystanie z funkcji okna (lub złączeń) zamiast skorelowanych podzapytań jest praktyką znacznie bezpieczniejszą, która zapobiega spadkom wydajności w bardziej rygorystycznych środowiskach korporacyjnych takich jak MS SQL, zachowując przy tym wysoką czytelność logiki analitycznej.
+```
 ---
+
 
 # Zadanie 5
 
@@ -451,9 +457,46 @@ Przetestuj działanie w różnych SZBD (MS SQL Server, PostgreSql, SQLite)
 > Wyniki:
 
 ```sql
---  ...
+SQL
+1. 500 rows retrieved starting from 1 in 394 ms (execution: 56 ms, fetching: 338 ms)
+Plan:
+```
+```sql
+2. 500 rows retrieved starting from 1 in 431 ms (execution: 86 ms, fetching: 345 ms)
+Plan:
+```
+```sql
+3. 500 rows retrieved starting from 1 in 606 ms (execution: 268 ms, fetching: 338 ms)
+Plan:
 ```
 
+```sql
+Postgres
+1. 500 rows retrieved starting from 1 in 2 m 35 s 214 ms (execution: 2 m 34 s 847 ms, fetching: 367 ms)
+Plan:
+```
+```sql
+2. 500 rows retrieved starting from 1 in 615 ms (execution: 272 ms, fetching: 343 ms)
+Plan:
+```
+```sql
+3. 500 rows retrieved starting from 1 in 1 s 165 ms (execution: 820 ms, fetching: 345 ms)
+Plan:
+```
+
+```sql
+SQLite
+1. 500 rows retrieved starting from 1 in 2 m 18 s 367 ms (execution: 996 ms, fetching: 2 m 17 s 371 ms)
+Plan:
+```
+```sql
+2. 500 rows retrieved starting from 1 in 441 ms (execution: 102 ms, fetching: 339 ms)
+Plan:
+```
+```sql
+3. 500 rows retrieved starting from 1 in 569 ms (execution: 234 ms, fetching: 335 ms)
+Plan:
+```
 ---
 
 |         |     |
