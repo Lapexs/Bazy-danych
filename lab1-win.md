@@ -265,42 +265,50 @@ SQL
 1. 27 rows retrieved starting from 1 in 368 ms (execution: 27 ms, fetching: 341 ms)
 Plan:
 ```
-
+1. ![Wynik zapytania 1](Zad4.1_SQL.png)
 ```sql
 2. 27 rows retrieved starting from 1 in 349 ms (execution: 15 ms, fetching: 334 ms)
 Plan:
 ```
-
+2. ![Wynik zapytania 2](Zad4.2_SQL.png)
 ```sql
 3. 27 rows retrieved starting from 1 in 350 ms (execution: 17 ms, fetching: 333 ms)
 Plan:
 ```
+3. ![Wynik zapytania 3](Zad4.3_SQL.png)
+
 ```sql
 Postgres
 1. 27 rows retrieved starting from 1 in 343 ms (execution: 7 ms, fetching: 336 ms)
 Plan:
 ```
+1. ![Wynik zapytania 1](Zad4.1_Postgres.png)
+
 ```sql
 2. 27 rows retrieved starting from 1 in 338 ms (execution: 6 ms, fetching: 332 ms)
 Plan:
 ```
+2. ![Wynik zapytania 2](Zad4.2_Postgres.png)
+
 ```sql
 3. 27 rows retrieved starting from 1 in 340 ms (execution: 7 ms, fetching: 333 ms)
 Plan:
 ```
-
+3. ![Wynik zapytania 3](Zad4.3_Postgres.png)
 ```sql
 SQLite
 1. 27 rows retrieved starting from 1 in 360 ms (execution: 5 ms, fetching: 355 ms)
 Plan:
 ```
+1. ![Wynik zapytania 1](Zad4.1_SQLite.png)
 ```sql
 2. 27 rows retrieved starting from 1 in 356 ms (execution: 4 ms, fetching: 352 ms)
 ```
+2. ![Wynik zapytania 2](Zad4.2_SQLite.png)
 ```sql
 3. 27 rows retrieved starting from 1 in 323 ms (execution: 4 ms, fetching: 319 ms)
 ```
-
+3. ![Wynik zapytania 3](Zad4.3_SQLite.png)
 ---
 
 # Zadanie 5
