@@ -332,7 +332,8 @@ Wykonaj polecenia: `select count(*) from product_history`, potwierdzające wykon
 ---
 
 > Wyniki:
-![Wynik zapytania](Zad5.png)
+
+1. ![Wynik zapytania](Zad5.png)
 
 # Zadanie 6
 
