@@ -184,13 +184,52 @@ W DataGrip użyj opcji Explain Plan/Explain Analyze
 > Wyniki:
 
 ```sql
+MS SQL
+1. 77 rows retrieved starting from 1 in 367 ms (execution: 12 ms, fetching: 355 ms). Koszt 0.0041.
+Plan:
 
-1. ![Wynik zapytania 1](img/Zad 3.1.png)
+```
+1. ![Wynik zapytania 1](img/Zad_3.1.png)
 
-2. ![Wynik zapytania 2](img/Zad 3.2.png)
+```sql
+2. 77 rows retrieved starting from 1 in 384 ms (execution: 13 ms, fetching: 371 ms). Koszt 0.0041.
+Plan:
+```
 
-3. ![Wynik zapytania 3](img/Zad 3.3.png)
+2. ![Wynik zapytania 2](img/Zad_3.2.png)
 
+```sql
+3. 77 rows retrieved starting from 1 in 354 ms (execution: 13 ms, fetching: 341 ms). Koszt 0.0041.
+Plan:
+```
+3. ![Wynik zapytania 3](img/Zad_3.3.png)
+
+```sql
+Postgres
+1. 77 rows retrieved starting from 1 in 386 ms (execution: 16 ms, fetching: 370 ms). Koszt
+
+```
+```sql
+2. 77 rows retrieved starting from 1 in 343 ms (execution: 5 ms, fetching: 338 ms)
+
+```
+```sql
+3. 77 rows retrieved starting from 1 in 339 ms (execution: 6 ms, fetching: 333 ms)
+```
+   
+```sql
+SQLite
+
+1. 77 rows retrieved starting from 1 in 414 ms (execution: 17 ms, fetching: 397 ms). 
+
+```
+
+```sql
+2. 77 rows retrieved starting from 1 in 372 ms (execution: 5 ms, fetching: 367 ms)
+```
+
+```sql
+3. 77 rows retrieved starting from 1 in 358 ms (execution: 5 ms, fetching: 353 ms)
 ```
 
 ---
