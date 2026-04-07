@@ -3,7 +3,7 @@
 
 ---
 
-**Imiona i nazwiska:**
+**Imiona i nazwiska: Jan Małek**
 
 --- 
 
@@ -107,8 +107,20 @@ Do analizy użyj wybranego systemu/bazy danych - wybierz MS SQLserver, Postgres 
 ---
 > Wyniki: 
 
+```text
+ROW_NUMBER(): Zawsze nadaje unikalny numer, nawet dla tych samych wartości.
+
+RANK(): Pozostawia luki w numeracji po remisach (np. 1, 2, 2, 4).
+
+DENSE_RANK(): Nie pozostawia luk (np. 1, 2, 2, 3).
+```
+
 ```sql
---  ...
+SELECT p.ProductID, p.ProductName, p.UnitPrice, p.CategoryID,
+    (SELECT COUNT(*) + 1 FROM Products p2 
+     WHERE p2.CategoryID = p.CategoryID AND p2.UnitPrice > p.UnitPrice) as RankPrice
+FROM Products p
+ORDER BY CategoryID, UnitPrice DESC;
 ```
 
 
@@ -138,8 +150,51 @@ Przetestuj działanie w różnych SZBD (MS SQL Server, PostgreSql, SQLite)
 > Wyniki: 
 
 ```sql
---  ...
+WITH RankedPrices AS (
+    SELECT
+    YEAR(date) as Year, productid, productname, unitprice, date,
+    dense_rank() over (partition by productid, YEAR(date) order by unitprice desc) as Position
+    FROM product_history
+)
+SELECT * from RankedPrices
+WHERE Position <= 4
+ORDER BY Year, productid, Position;
 ```
+
+```text
+500 rows retrieved starting from 1 in 779 ms (execution: 418 ms, fetching: 361 ms)
+Koszt 43.4
+```
+![Zad2.1](lab2/Zad2_1.png)
+
+```sql
+Bez okna
+
+SELECT
+    YEAR(ph1.date) AS Year,
+    ph1.productid,
+    ph1.productname,
+    ph1.unitprice,
+    ph1.date
+FROM product_history ph1
+WHERE (
+    SELECT COUNT(DISTINCT ph2.unitprice)
+    FROM product_history ph2
+    WHERE ph2.productid=ph1.productid
+    AND YEAR(ph2.date) = YEAR(ph1.date)
+    AND ph2.unitprice = ph1.unitprice
+) < 4
+ORDER BY Year, ph1.productid, ph1.unitprice DESC;
+
+```
+
+```text
+500 rows retrieved starting from 1 in 13 s 727 ms (execution: 13 s 406 ms, fetching: 321 ms)
+Koszt 737.87
+```
+
+![Zad2.1](lab2/Zad2_2.png)
+
 
 ---
 
@@ -181,8 +236,30 @@ Do analizy użyj wybranego systemu/bazy danych - wybierz MS SQLserver, Postgres 
 ---
 > Wyniki: 
 
+```
+LAG(): Pobiera wartość z poprzedniego wiersza. W Twoim zadaniu pozwala sprawdzić, jaka była cena produktu w poprzednim dniu notowania.
+
+LEAD(): Pobiera wartość z następnego wiersza. Pozwala sprawdzić, jaka będzie cena produktu w kolejnym dniu.
+
+W pierwszym wierszu (najwcześniejsza data) kolumna previousprodprice będzie miała wartość NULL, bo nie ma wcześniejszego rekordu.
+
+W ostatnim wierszu kolumna nextprodprice będzie miała wartość NULL, bo nie ma kolejnego rekordu.
+
+```
+
 ```sql
---  ...
+select ph1.productid, ph1.productname, ph1.categoryid, ph1.date, ph1.unitprice,
+       (SELECT TOP 1 ph2.unitprice
+        FROM product_history ph2
+        WHERE ph2.productid = ph1.productid AND ph2.date<ph1.date
+        ORDER BY ph2.date DESC ) AS previousprodprice,
+    (SELECT TOP 1 ph3.unitprice
+     FROM product_history ph3
+     WHERE ph3.productid = ph1.productid AND ph3.date>ph1.date
+     ORDER BY ph3.date ASC ) AS nextprodprice
+FROM product_history ph1
+WHERE ph1.productid = 1 AND YEAR(ph1.date) = 2022
+ORDER BY ph1.date;
 ```
 
 ---
@@ -207,8 +284,21 @@ Do analizy użyj wybranego systemu/bazy danych - wybierz MS SQLserver, Postgres 
 ---
 > Wyniki: 
 
+
 ```sql
---  ...
+WITH OrderValues AS(
+    select o.customerid, o.orderid, o.orderdate, o.freight,
+    sum(od.unitprice * od.quantity * (1-od.discount)) + o.freight as TotalValue
+    from Orders o
+    join [orderdetails] od on o.orderid = od.orderid
+    group by o.customerid, o.orderid, o.orderdate, o.freight
+)
+select
+    customerid, orderid, orderdate, TotalValue,
+    LAG(orderid) over(partition by customerid order by orderdate) as prevOrderid,
+    LAG(orderdate) over(partition by customerid order by orderdate) as prevOrderDate,
+    LAG(TotalValue) over(partition by customerid order by orderdate) as prevOrderValue
+from OrderValues
 ```
 
 
