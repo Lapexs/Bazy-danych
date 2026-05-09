@@ -181,6 +181,21 @@ W DataGrip użyj opcji Explain Plan/Explain Analyze
 
 ---
 
+```sql
+select p.productid, p.ProductName, p.unitprice,
+(select avg(unitprice) from products) as avgprice
+from products p
+
+select p.productid, p.ProductName, p.unitprice, a.avgprice
+from products p
+cross join (select avg(unitprice) as avgprice from products) a;
+
+select productid, ProductName, unitprice,
+        AVG(unitprice) over() as avgprice
+from products;
+```
+
+
 > Wyniki:
 
 ```sql
@@ -256,6 +271,53 @@ Napisz polecenie z wykorzystaniem podzapytania, join'a oraz funkcji okna. Porów
 
 Przetestuj działanie w różnych SZBD (MS SQL Server, PostgreSql, SQLite)
 
+
+
+```sql
+Pozdapytanie
+
+SELECT
+    p1.productid,
+    p1.ProductName,
+    p1.unitprice,
+    (SELECT AVG(unitprice) FROM products p2 WHERE p1.categoryid = p2.categoryid) AS avgprice
+FROM products p1
+WHERE p1.unitprice > (SELECT AVG(unitprice) FROM products p2 WHERE p1.categoryid = p2.categoryid);
+
+Z wykorzystaniem JOIN
+
+SELECT
+    p.productid,
+    p.ProductName,
+    p.unitprice,
+    a.avgprice
+FROM products p
+JOIN (
+    SELECT categoryid, AVG(unitprice) AS avgprice
+    FROM products
+    GROUP BY categoryid
+) a ON p.categoryid = a.categoryid
+WHERE p.unitprice > a.avgprice;
+
+Z wykorzystaniem okna
+
+WITH CalculatedAverages AS (
+    SELECT
+        productid,
+        ProductName,
+        unitprice,
+        AVG(unitprice) OVER(PARTITION BY categoryid) AS avgprice
+    FROM products
+)
+SELECT
+    productid,
+    ProductName,
+    unitprice,
+    avgprice
+FROM CalculatedAverages
+WHERE unitprice > avgprice;
+
+```
 ---
 
 > Wyniki:
