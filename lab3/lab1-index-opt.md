@@ -156,89 +156,55 @@ Włącz dwie opcje: **Include Actual Execution Plan** oraz **Include Live Query 
 
 Teraz wykonaj poszczególne zapytania (najlepiej każde analizuj oddzielnie). Co można o nich powiedzieć? Co sprawdzają? Jak można je zoptymalizować?  
 
+1
+
+![](Zad1.png)
+
+>Koszt: 2.44563
+
+1.1
+
+![](Zad1_1.png)
+
+>Koszt: 2.46448
+
+2
+
+![](Zad1_2.png)
+
+>Koszt: 7.96996
+
+3
+
+![](Zad1_3.png)
+
+>Koszt: 2.48642
+
+4
+
+![](Zad1_4.png)
+
+>Koszt: 2.13823
+
 ---
 > Wyniki: 
-
-> Wyniki: 
-
-```sql
--- zapytanie 1  
-select *  
-from salesorderheader sh  
-inner join salesorderdetail sd on sh.salesorderid = sd.salesorderid  
-where orderdate = '2008-06-01 00:00:00.000'  
-go
-```
-
-> Obserwacja: Operacja jest skrajnie nieefektywna, co potwierdza szacowany koszt operatora na poziomie 96%. Całość zasobów serwera jest pochłaniana przez jeden etap wykonania.
-> 
-> Zapytanie sprawdza test wydajności filtrowania rekordów według konkretnej daty (OrderDate).
-> 
->Wskazane jest utworzenie indeksu nieklastrowanego na kolumnie OrderDate. Pozwoli to na zamianę kosztownego skanowania (Scan) na precyzyjne wyszukiwanie (Seek), radykalnie ograniczając liczbę przetwarzanych wierszy.
-
-
-```sql
--- zapytanie 1.1
-select *  
-from salesorderheader sh  
-inner join salesorderdetail sd on sh.salesorderid = sd.salesorderid  
-where orderdate = '2013-01-28 00:00:00.000' 
-go  
-```
-
-> Mimo pozornej szybkości, plan obciążają liczne obliczenia skalarne oraz podwójne skanowanie tabel. Dominujący koszt (59% i 39%) generuje przeglądanie struktur SalesOrderHeader i SalesOrderDetail. 
-> 
-> Analiza efektywności złączenia tabel algorytmem Nested Loops przy braku punktowego dostępu do danych.
+>We wszystkich zapytaniach głównym operatorem pobierającym dane jest **Table Scan**. Oznacza to, że silnik bazy danych musi przeszukać każdą tabelę wiersz po wierszu, ponieważ nie posiada struktury (indeksu), która pozwoliłaby na szybkie odnalezienie konkretnych rekordów.
 >
->Optymalizacja: Brak indeksu na OrderDate wymusza Clustered Index Scan. Dodanie go umożliwi wykonanie Index Seek, co odciąży procesor oraz podsystem dyskowy.
+>Ponieważ tabele są skanowane w całości, koszty zapytań są stosunkowo wysokie, zwłaszcza w przypadku zapytania nr 2 (Koszt: 7.96996), gdzie dochodzi dodatkowo operacja grupowania i agregacji danych.
 
-```sql
--- zapytanie 2  
-select orderdate, productid, sum(orderqty) as orderqty, 
-       sum(unitpricediscount) as unitpricediscount, sum(linetotal)  
-from salesorderheader sh  
-inner join salesorderdetail sd on sh.salesorderid = sd.salesorderid  
-group by orderdate, productid  
-having sum(orderqty) >= 100  
-go  
-```
->Typowe zapytanie obciążające procesor, wykorzystujące równoległość (Parallelism) do jednoczesnego przetwarzania danych.
+>Zapytania 1, 1.1 oraz 3: Sprawdzają one zamówienia dla konkretnych dat lub zakresów dat. Mimo filtrowania po kolumnie `OrderDate`, silnik wykonuje pełny skan tabeli `salesorderheader`. Różnica w kosztach między zapytaniem 1 (2.44) a 1.1 (2.46) wynika z innej liczby wierszy (krotności), które spełniają warunek i muszą zostać przesłane do dalszych etapów planu.
 >
->Weryfikuje sprawności agregacji i grupowania (GROUP BY). Kluczowym kosztem (31%) jest budowanie tablicy skrótów w RAM (Hash Match Aggregate) oraz skanowanie tabeli nagłówków (17%).
+>Zapytanie 2: Jest najbardziej obciążające, ponieważ łączy filtrowanie, grupowanie (`GROUP BY`) oraz warunek na sumie (`HAVING`). Plan wykonania musi tu uwzględnić agregację, co znacznie podnosi koszt w porównaniu do prostego wybierania rekordów.
 >
->Zamiast pełnego skanowania, należy stworzyć indeks pokrywający kolumny OrderDate, ProductID oraz OrderQty. Pozwoli to silnikowi pobrać gotowe wartości bezpośrednio z indeksu, eliminując potrzebę kosztownych złączeń i skanów tabel.
----
+>Zapytanie 4: Filtruje dane po numerze śledzenia przesyłki (`CarrierTrackingNumber`). Podobnie jak w poprzednich przypadkach, brak indeksu na tej kolumnie wymusza pełny skan tabeli `salesorderdetail`.
 
-```sql
--- zapytanie 3  
-select salesordernumber, purchaseordernumber, duedate, shipdate  
-from salesorderheader sh  
-inner join salesorderdetail sd on sh.salesorderid = sd.salesorderid  
-where orderdate in ('2008-06-01','2008-06-02', '2008-06-03', '2008-06-04', '2008-06-05')  
-go  
-```
-> Mimo zapytania o wąski zakres dat, silnik wykonuje nadmiarową pracę, poświęcając 89% kosztów na skanowanie całej tabeli.
+>Optymalizacja: Stworzenie indeksów klastrowanych - Należy zdefiniować klucze główne (Primary Keys) na kolumnach `SalesOrderID` w obu tabelach, co zamieni Table Scan na znacznie szybszy Clustered Index Scan lub Seek przy łączeniu tabel.
 >
->Badanie wydajności operatora IN dla wielu wartości. Operator Filter (9%) odrzuca zbędne dane dopiero po ich uprzednim odczytaniu z dysku.
+>Dla zapytań 1, 1.1 i 3 warto dodać indeks na kolumnie `OrderDate`.
 >
->Rekomendowane jest utworzenie indeksu na OrderDate z uwzględnieniem dodatkowych kolumn (DueDate, ShipDate itd.) w klauzuli INCLUDE. Umożliwi to pełną obsługę zapytania z poziomu samego indeksu, obniżając koszty o ponad 80%.
+>Dla zapytania 4 kluczowe byłoby założenie indeksu na kolumnie `CarrierTrackingNumber`.
 
-```sql
--- zapytanie 4  
-select sh.salesorderid, salesordernumber, purchaseordernumber, duedate, shipdate  
-from salesorderheader sh  
-inner join salesorderdetail sd on sh.salesorderid = sd.salesorderid  
-where carriertrackingnumber in ('ef67-4713-bd', '6c08-4c4c-b8')  
-order by sh.salesorderid  
-go
-```
 
->Wyszukiwanie dwóch konkretnych numerów śledzenia odbywa się w sposób nieoptymalny, generując 82% kosztu przez skanowanie indeksu klastrowanego.
->
->Test filtrowania kolumny tekstowej CarrierTrackingNumber w tabeli szczegółów. Brak indeksu zmusza system do odczytu całej tabeli w poszukiwaniu dopasowań.
->
->Należy utworzyć indeks na kolumnie CarrierTrackingNumber. Zastąpienie skanowania operacją Seek skróciłoby czas zapytania o ok. 81% i znacząco zredukowało zużycie zasobów.
----
 
 # Zadanie 2 - Dobór indeksów / optymalizacja
 
